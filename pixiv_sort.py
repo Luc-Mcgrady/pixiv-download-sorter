@@ -5,6 +5,7 @@ import requests
 import html
 import functools
 import shutil
+import argparse
 
 import unicodedata
 
@@ -34,11 +35,23 @@ def fetch_name(id: str) -> str:
     return name
 
 if __name__ == "__main__":
-    dir = sys.argv[1] if len(sys.argv) == 2 else "."
+    args = argparse.ArgumentParser()
+
+    args.add_argument("--src", default=".", help="The folder containing your saved files")
+    args.add_argument("--done", default=".", help="Move sorted files to this folder with their original names")
+    args.add_argument("--sorted", default="./sorted", help="Where the files will moved and renamed")
+    args.add_argument("--gallery-file", default=None, help="Adds a blank file with the given name to every generated folder")
+
+    args = args.parse_args()
+
+    dir = args.src
+    save_dir = args.sorted
+    done_dir = args.done
+
+    galary_file = args.gallery_file
+
     filepaths = os.listdir(dir)
     filepaths = [os.path.join(dir,file) for file in filepaths if file.endswith((".jpg", ".png"))]
-    save_dir = os.path.join(dir, "sorted")
-    done_dir = os.path.join(dir, "done")
 
     os.makedirs(save_dir, exist_ok=True)
     os.makedirs(done_dir, exist_ok=True)
@@ -54,8 +67,9 @@ if __name__ == "__main__":
                 new_pos = os.path.join(save_dir, name)
                 os.makedirs(new_pos, exist_ok=True)
                 dest = os.path.join(new_pos, number + f".{ext}")
-                with open(os.path.join(new_pos, ".forcegallery"), "w+"):
-                    pass
+                if galary_file:
+                    with open(os.path.join(new_pos, galary_file), "w+"):
+                        pass
             else:
                 dest = os.path.join(save_dir, name + f".{ext}")
 
