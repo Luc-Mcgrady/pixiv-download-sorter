@@ -1,6 +1,6 @@
 # Pixiv sort
 
-Automatically renames and sorts images downloaded from pixiv with "save as image" in the browser into seperate folders. This tool is reliant on the files not having be renamed manually by the user. e.g. `110961057_p0.png` will be sorted.
+Automatically renames and sorts images downloaded from pixiv with "save as image" in the browser into seperate folders. This tool is reliant on the files not having be renamed manually by the user. e.g. `86409548_p0.png` will be sorted. Files saved with any other filename format (including "master" files that are found when downloading the thumbnails of images (use "save link as" or click to fullscreen the image before saving.))
 
 usage:
 ```
@@ -16,3 +16,5 @@ options:
 ```
 
 This will save the renamed files into a given folder. To move the original files so that they do not need to be re-sorted if the program is re-run, use the "done" argument.
+
+This will make a request to pixiv and webscrape the information from the server once for every gallary.
