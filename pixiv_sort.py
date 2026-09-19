@@ -27,27 +27,32 @@ def slugify(value, allow_unicode=True):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 @functools.cache
-def fetch_name(id: str) -> str:
+def fetch_name(id: str) -> (str, str):
     req = requests.get(f"https://www.pixiv.net/en/artworks/{id}")
-    name = re.search(br'<title.+?>(.+?)<\/title>', req.content).group(1)
-    name = html.unescape(name.decode())
-    name = "".join(name.split('-')[:-1]).lstrip('#').strip()
+    match = re.search(br"<title[^>]*>(.*?)</title>", req.content)
+    assert match
 
-    return name
+    name = html.unescape(match.group(1).decode("utf-8"))
+    *name_parts, author = name.split("-")[:-1]
+    name = "".join(name_parts).lstrip("#").strip()
+    author = author[:-6].strip()
+
+    print(f"{name=}, {author=}")
+    return name, author
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
 
-    arg_parser.add_argument("--src", default=".", help="The folder containing your saved files")
-    arg_parser.add_argument("--done", default=".", help="Move sorted files to this folder with their original names")
+    arg_parser.add_argument("--src-dir", default=".", help="The folder containing your saved files")
+    arg_parser.add_argument("--done-dir", default="./done", help="Move sorted files to this folder with their original names")
     arg_parser.add_argument("--sorted", default="./sorted", help="Where the files will moved and renamed")
     arg_parser.add_argument("--gallery-file", default=None, help="Adds a blank file with the given name to every generated folder")
 
     args = arg_parser.parse_args()
 
-    dir = args.src
+    dir = args.src_dir
     save_dir = args.sorted
-    done_dir = args.done
+    done_dir = args.done_dir
 
     galary_file = args.gallery_file
 
@@ -61,26 +66,29 @@ if __name__ == "__main__":
         try:
             id, number, ext = os.path.basename(filepath).replace(".", "_").split("_")
 
-            name = slugify(fetch_name(id))
+            name, author = fetch_name(id)
+            name = slugify(name)
+            author = slugify(author)
             dest = ""
+            folder_destination = os.path.join(save_dir, author, name)
 
-            if os.path.exists(os.path.join(dir, f"{id}_p1.{ext}")):
-                new_pos = os.path.join(save_dir, name)
-                os.makedirs(new_pos, exist_ok=True)
-                dest = os.path.join(new_pos, number + f".{ext}")
+            if os.path.exists(os.path.join(dir, f"{id}_p1.{ext}")) or os.path.exists(folder_destination):
+                dest = os.path.join(folder_destination, number + f".{ext}")
                 if galary_file:
-                    with open(os.path.join(new_pos, galary_file), "w+"):
+                    with open(os.path.join(folder_destination, galary_file), "w+"):
                         pass
             else:
-                dest = os.path.join(save_dir, name + f".{ext}")
+                dest = os.path.join(save_dir, author, name + f".{ext}")
 
             if not os.path.isfile(dest):
-                os.link(filepath, dest)
+                os.makedirs(os.path.dirname(dest), exist_ok=True)
+                os.link(os.path.abspath(filepath), dest)
             else:
                 print(f"{id=} {number=} is a duplicate")
         
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             print(f"Failed to process {id=} {number=} {e=}")
+            raise
 
     for filepath in filepaths:
         shutil.move(filepath, os.path.join(done_dir, os.path.basename(filepath)))
