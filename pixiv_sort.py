@@ -1,13 +1,13 @@
-import os
-import sys
-import re
-import requests
-import html
-import functools
-import shutil
 import argparse
-
+import functools
+import html
+import os
+import re
+import shutil
 import unicodedata
+
+import requests
+
 
 def slugify(value, allow_unicode=True):
     """
@@ -35,14 +35,14 @@ def fetch_name(id: str) -> str:
     return name
 
 if __name__ == "__main__":
-    args = argparse.ArgumentParser()
+    arg_parser = argparse.ArgumentParser()
 
-    args.add_argument("--src", default=".", help="The folder containing your saved files")
-    args.add_argument("--done", default=".", help="Move sorted files to this folder with their original names")
-    args.add_argument("--sorted", default="./sorted", help="Where the files will moved and renamed")
-    args.add_argument("--gallery-file", default=None, help="Adds a blank file with the given name to every generated folder")
+    arg_parser.add_argument("--src", default=".", help="The folder containing your saved files")
+    arg_parser.add_argument("--done", default=".", help="Move sorted files to this folder with their original names")
+    arg_parser.add_argument("--sorted", default="./sorted", help="Where the files will moved and renamed")
+    arg_parser.add_argument("--gallery-file", default=None, help="Adds a blank file with the given name to every generated folder")
 
-    args = args.parse_args()
+    args = arg_parser.parse_args()
 
     dir = args.src
     save_dir = args.sorted
@@ -78,9 +78,8 @@ if __name__ == "__main__":
             else:
                 print(f"{id=} {number=} is a duplicate")
         
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Failed to process {id=} {number=} {e=}")
-            exit(-1)
 
     for filepath in filepaths:
         shutil.move(filepath, os.path.join(done_dir, os.path.basename(filepath)))
