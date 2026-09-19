@@ -1,3 +1,4 @@
+#!/bin/python
 import argparse
 import functools
 import html
