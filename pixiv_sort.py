@@ -29,13 +29,19 @@ def slugify(value, allow_unicode=True):
 @functools.cache
 def fetch_name(id: str) -> (str, str):
     req = requests.get(f"https://www.pixiv.net/en/artworks/{id}")
+    req.raise_for_status()
     match = re.search(br"<title[^>]*>(.*?)</title>", req.content)
     assert match
 
-    name = html.unescape(match.group(1).decode("utf-8"))
-    *name_parts, author = name.split("-")[:-1]
-    name = "".join(name_parts).lstrip("#").strip()
-    author = author[:-6].strip()
+    try:
+        raw_name = html.unescape(match.group(1).decode("utf-8"))
+        print(f"{raw_name=}")
+        *name_parts, author = raw_name.split("-")[:-1]
+        name = "".join(name_parts).lstrip("#").strip()
+        author = author[:-6].strip()
+    except:
+        print(f"{raw_name=}")
+        raise
 
     print(f"{name=}, {author=}")
     return name, author
