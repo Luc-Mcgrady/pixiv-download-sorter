@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 import argparse
 import functools
 import html
@@ -8,6 +8,7 @@ import shutil
 import unicodedata
 
 import requests
+from tqdm import tqdm
 
 
 def slugify(value, allow_unicode=True):
@@ -43,7 +44,6 @@ def fetch_name(id: str) -> (str, str):
         print(f"{raw_name=}")
         raise
 
-    print(f"{name=}, {author=}")
     return name, author
 
 if __name__ == "__main__":
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     os.makedirs(save_dir, exist_ok=True)
     os.makedirs(done_dir, exist_ok=True)
 
-    for filepath in filepaths:
+    for filepath in (progress := tqdm(filepaths)):
         try:
             id, number, ext = os.path.basename(filepath).replace(".", "_").split("_")
 
@@ -91,10 +91,9 @@ if __name__ == "__main__":
                 os.link(os.path.abspath(filepath), dest)
             else:
                 print(f"{id=} {number=} is a duplicate")
-        
-        except Exception as e:
-            print(f"Failed to process {id=} {number=} {e=}")
-            raise
 
-    for filepath in filepaths:
+            progress.set_description(f"{author}, {name}")
+        except Exception as e:  # noqa: BLE001
+            print(f"Failed to process {id=} {number=} {e=}")
+        
         shutil.move(filepath, os.path.join(done_dir, os.path.basename(filepath)))
