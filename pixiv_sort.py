@@ -31,15 +31,17 @@ def slugify(value, allow_unicode=True):
 def fetch_name(id: str) -> (str, str):
     req = requests.get(f"https://www.pixiv.net/en/artworks/{id}")
     req.raise_for_status()
-    match = re.search(br"<title[^>]*>(.*?)</title>", req.content)
+    match = re.search(br"<title[^>]*>(.*?)<\/title>", req.content)
     assert match
 
     try:
         raw_name = html.unescape(match.group(1).decode("utf-8"))
-        print(f"{raw_name=}")
-        *name_parts, author = raw_name.split("-")[:-1]
-        name = "".join(name_parts).lstrip("#").strip()
-        author = author[:-6].strip()
+
+        matches = re.match(r"#(.+) - (.+)の(?:マンガ|イラスト)", raw_name)
+        assert matches
+        name, author = matches.groups()
+
+        author = author.strip()
     except:
         print(f"{raw_name=}")
         raise
