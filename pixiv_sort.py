@@ -54,7 +54,7 @@ if __name__ == "__main__":
     save_dir = args.sorted
     done_dir = args.done_dir
 
-    galary_file = args.gallery_file
+    gallery_file = args.gallery_file
 
     filepaths = os.listdir(dir)
     filepaths = [os.path.join(dir,file) for file in filepaths if file.endswith((".jpg", ".png"))]
@@ -74,8 +74,8 @@ if __name__ == "__main__":
 
             if os.path.exists(os.path.join(dir, f"{id}_p1.{ext}")) or os.path.exists(folder_destination):
                 dest = os.path.join(folder_destination, number + f".{ext}")
-                if galary_file:
-                    with open(os.path.join(folder_destination, galary_file), "w+"):
+                if gallery_file:
+                    with open(os.path.join(folder_destination, gallery_file), "w+"):
                         pass
             else:
                 dest = os.path.join(save_dir, author, name + f".{ext}")
